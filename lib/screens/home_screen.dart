@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+
+import '../widgets/my_note_add_button.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
-
+  HomeScreen({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    double topPadding = MediaQuery.of(context).padding.top;
+    return SafeArea(
+      child: Scaffold(
+        floatingActionButton: MyNoteAddButton(topPadding: topPadding),
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          // child: ,
+        ),
+      ),
+    );
   }
 }
