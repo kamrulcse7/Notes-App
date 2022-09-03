@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:hive/hive.dart';
-import 'package:notes_app/madel/note_model.dart';
 
+import '../model/note_model.dart';
 import 'home_page.dart';
 
 class TaskEditorPage extends StatefulWidget {
@@ -20,11 +18,11 @@ class TaskEditorPage extends StatefulWidget {
 }
 
 class _TaskEditorPageState extends State<TaskEditorPage> {
+  final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     TextEditingController _taskTitle = TextEditingController(
-        text: widget.task == null ? null : widget.task!.title!
-        );
+        text: widget.task == null ? null : widget.task!.title!);
     TextEditingController _taskNote = TextEditingController(
         text: widget.task == null ? null : widget.task!.note!);
 
@@ -57,27 +55,29 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
                   done: false,
                 );
                 Box<Task> taskBox = Hive.box<Task>("tasks");
-                // if(widget.task == null ){
-                //   ScaffoldMessenger.of(context).showSnackBar(
-                //     SnackBar(
-                //       content: Text("Notes are empty! write something", style: TextStyle(fontSize: 16.0),),
-                //       duration: Duration(milliseconds: 500),
-                //       backgroundColor: Colors.red[300],
-                //     ),
-                //   );
-                // }
-                if (widget.task != null) {
-                  widget.task!.title = newTask.title;
-                  widget.task!.note = newTask.note;
-                  // widget.task!.save();
-                   Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => HomePage()));
-                } 
-                
-                else {
-                  await taskBox.add(newTask);
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => HomePage()));
+                if (_formKey.currentState!.validate()) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Note Save Successfully')),
+                  );
+                  if (widget.task != null) {
+                    widget.task!.title = newTask.title;
+                    widget.task!.note = newTask.note;
+                    widget.task!.save();
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => HomePage()));
+                  } else {
+                    await taskBox.add(newTask);
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => HomePage()));
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Please enter some text'),
+                      duration: Duration(milliseconds: 700),
+                      backgroundColor: Colors.red.shade300,
+                    ),
+                  );
                 }
               },
               child: Chip(
@@ -98,42 +98,53 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
           width: double.infinity,
           height: double.infinity,
           padding: EdgeInsets.only(top: 10.0, left: 12.0, right: 12.0),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _taskTitle,
-                  decoration: InputDecoration(
-                    // border:InputBorder.none,
-                    // fillColor: Colors.black12,
-                    // filled: true,
-                    hintText: "Title",
-                    hintStyle: TextStyle(
-                      fontSize: 20.0,
-                      letterSpacing: 1.5,
-                      fontWeight: FontWeight.w400,
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _taskTitle,
+                    decoration: InputDecoration(
+                      hintText: "Title",
+                      hintStyle: TextStyle(
+                        fontSize: 20.0,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter some title';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-                SizedBox(
-                  height: 10.0,
-                ),
-                TextFormField(
-                  controller: _taskNote,
-                  decoration: InputDecoration(
-                    // fillColor: Colors.green,
-                    // filled: true,
-                    border: InputBorder.none,
-                    hintText: "Start typing..",
-                    hintStyle: TextStyle(
-                      fontSize: 18.0,
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.w300,
+                  SizedBox(
+                    height: 10.0,
+                  ),
+                  TextFormField(
+                    controller: _taskNote,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: "Start typing..",
+                      hintStyle: TextStyle(
+                        fontSize: 18.0,
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.w300,
+                      ),
                     ),
+                    maxLines: (MediaQuery.of(context).size.height * 0.04).toInt(),
+                    // minLines: 50,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter some text';
+                      }
+                      return null;
+                    },
                   ),
-                  maxLines: MediaQuery.of(context).size.height.toInt(),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
